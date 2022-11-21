@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  testdb:
+    image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+    ports:
+      - "1433:1433"
+    container_name: testdb
+    hostname: testdb
+    environment:
+      TZ: Europe/Berlin
+      SA_PASSWORD: "LocalAdmin_123"
+      ACCEPT_EULA: "Y"
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$$SA_PASSWORD" -Q "SELECT 1" || exit 1
+      timeout: 3s
+      interval: 5s
+      retries: 5
+    volumes:
+      - ./create-database.sql:/app/create-database.sql
+      - ./run-initialization.sh:/app/run-initialization.sh
+      - ./entrypoint.sh:/app/entrypoint.sh
+    command: /app/entrypoint.sh

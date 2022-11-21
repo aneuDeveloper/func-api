@@ -1,0 +1,10 @@
+{
+    "KAFKA_CLIENT_ID": "FuncManagerClientId",
+    "KAFKA_GROUP_ID": "FuncManagerGroupId",
+    "BOOTSTRAPSERVER": "127.0.0.1:19092",
+    "DB_USER": "sa",
+    "DB_PASSWORD": "LocalAdmin_123",
+    "DB_SERVER": "localhost",
+    "DB_DATABASE": "tempdb",
+    "WORKFLOWS": "TestProcess"
+}
