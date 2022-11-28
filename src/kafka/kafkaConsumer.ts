@@ -2,7 +2,6 @@ import { EachMessagePayload } from "kafkajs";
 const { Kafka, CompressionTypes, CompressionCodecs } = require("kafkajs");
 const SnappyCodec = require("kafkajs-snappy");
 CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec;
-import { Request, Response } from "express";
 const conf = require("../config/config.ts");
 import deserializer from "./deserializer";
 
@@ -56,8 +55,8 @@ function handleMessage(messagePayload: EachMessagePayload) {
             sql.VarChar(50),
             functionEvent.get("processInstanceID"),
           )
-          .input("func", sql.VarChar(50), functionEvent.get("function"))
-          .input("func_type", sql.VarChar(50), functionEvent.get("type"))
+          .input("func", sql.VarChar(50), functionEvent.get("func"))
+          .input("func_type", sql.VarChar(50), functionEvent.get("func_type"))
           .input("source_topic", sql.VarChar(50), topic)
           .input(
             "correlation_state",

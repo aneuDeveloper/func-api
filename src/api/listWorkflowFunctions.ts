@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import deserializer from '../kafka/deserializer'
 const sql = require("mssql");
 const conf = require('../config/config.ts')
 
@@ -20,6 +21,8 @@ var config = {
   },
 };
 
+
+
 var listWorkflowFunctions = function (req: Request, res: Response) {
   const processInstanceid = req.params["process_instanceid"];
   console.log(processInstanceid);
@@ -38,7 +41,7 @@ var listWorkflowFunctions = function (req: Request, res: Response) {
           .input("process_instanceid", sql.VarChar(50), processInstanceid)
           .query(
             `
-            SELECT * FROM kafkamessages
+            SELECT * FROM func_events
             WHERE process_instanceid=@process_instanceid
             `,
           )
@@ -52,6 +55,7 @@ var listWorkflowFunctions = function (req: Request, res: Response) {
 
       for (const k in result.recordset) {
         const dbRow = result.recordset[k];
+        const deserializedEvent = deserializer(dbRow["kafka_message"])
         response.result.push(
           {
             "id": dbRow["id"],
@@ -60,9 +64,11 @@ var listWorkflowFunctions = function (req: Request, res: Response) {
             "process_instanceid": dbRow["process_instanceid"],
             "time_stamp": dbRow["time_stamp"],
             "process_name": dbRow["process_name"],
-            "function": dbRow["process_step"],
+            "func" : dbRow["func"],
+            "func_type" : dbRow["func_type"],
             "retry_count": dbRow["retry_count"],
-            "kafka_message": dbRow["kafka_message"],
+            "data": deserializedEvent.get("data"),
+            "source_topic": dbRow["source_topic"],
           },
         );
         console.log(result.recordset[k]["id"]);
@@ -76,5 +82,4 @@ var listWorkflowFunctions = function (req: Request, res: Response) {
       res.send(err);
     });
 };
-
-module.exports = listWorkflowFunctions;
+export default listWorkflowFunctions;
