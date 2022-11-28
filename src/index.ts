@@ -7,19 +7,10 @@ import submitFunction from "./api/submitFunction";
 
 app.get("/functions/search", searchFunctions);
 app.get("/workflow/:process_instanceid/functions", listFunctions);
-
-app.get("/startConsuming", (req: Request, res: Response) => {
-  console.log("startConsuming");
-  startConsuming();
-  res.append("Access-Control-Allow-Origin", "*");
-  res.send("triggered");
-});
-
 app.get("/ping", (req: Request, res: Response) => {
   res.append("Access-Control-Allow-Origin", "*");
   res.send("pong");
 });
-
 app.post("/submitFunction", (req: Request, res: Response) => {
   submitFunction(
     <string> req.query.source_topic,
@@ -33,6 +24,8 @@ app.post("/submitFunction", (req: Request, res: Response) => {
   res.append("Access-Control-Allow-Origin", "*");
   res.send("sent");
 });
+
+startConsuming();
 
 const server = app.listen(8081, function () {
   console.log("Start application");
