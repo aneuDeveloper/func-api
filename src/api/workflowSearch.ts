@@ -61,7 +61,6 @@ var workflowSearch = function (req: Request, res: Response) {
         );
         console.log(result.recordset[k]["id"]);
       }
-      res.append("Access-Control-Allow-Origin", "*");
       res.send(response);
     })
     .catch((err: Error) => {
