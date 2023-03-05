@@ -8,7 +8,7 @@ const app: Express = express();
 const cors = require('cors')
 
 const server = app.listen(8081, function () {
-  console.log("Start consuming kafka messages");
+  console.log("Start func api");
 
   app.use(bodyParser.text());
   app.use(cors())
@@ -34,10 +34,7 @@ const server = app.listen(8081, function () {
     res.send("Sent message. Headers=" + JSON.stringify(req.headers));
   });
 
-  app.post("/test", (req: Request, res: Response) => {
-    console.log(req.body);
-    res.send("test and=" + req.body + " headers=" + JSON.stringify(req.headers));
-
+  app.post("/consume-kafka-messages", (req: Request, res: Response) => {
     startConsuming();
   });
 });
