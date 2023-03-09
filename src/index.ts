@@ -7,7 +7,7 @@ import bodyParser from "body-parser";
 const app: Express = express();
 const cors = require('cors')
 
-const server = app.listen(8081, function () {
+const server = app.listen(3000, function () {
   console.log("Start func api");
 
   app.use(bodyParser.text());
@@ -36,5 +36,6 @@ const server = app.listen(8081, function () {
 
   app.post("/consume-kafka-messages", (req: Request, res: Response) => {
     startConsuming();
+    res.send("Consuming...");
   });
 });

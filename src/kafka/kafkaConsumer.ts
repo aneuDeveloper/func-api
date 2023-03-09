@@ -2,7 +2,7 @@ import { EachMessagePayload } from "kafkajs";
 const { Kafka, CompressionTypes, CompressionCodecs } = require("kafkajs");
 const SnappyCodec = require("kafkajs-snappy");
 CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec;
-const conf = require("../config/config.ts");
+const conf = require("../config/config");
 import deserializer from "./deserializer";
 
 const sql = require("mssql");
@@ -93,18 +93,22 @@ function handleMessage(messagePayload: EachMessagePayload) {
 }
 
 async function startConsuming() {
+  const bootstrapserver = conf("BOOTSTRAPSERVER");
+  console.log(
+    "Starting kafka consumer with BOOTSTRAPSERVER=" + bootstrapserver,
+  );
+
   const kafka = new Kafka({
     clientId: conf("KAFKA_CLIENT_ID"),
-    brokers: [conf("BOOTSTRAPSERVER")],
+    brokers: [bootstrapserver],
   });
   const consumer = kafka.consumer({ groupId: conf("KAFKA_GROUP_ID") });
   await consumer.connect();
 
-  const workflows = conf("WORKFLOWS");
-  const topics = [workflows + "-WORKFLOW"];
+  const topics = conf("FUNC_TOPICS");
   await consumer.subscribe(
     {
-      topics: topics,
+      topics: [topics],
       fromBeginning: true,
     },
   );
@@ -114,7 +118,7 @@ async function startConsuming() {
     console.log(err);
   });
 
-  await consumer.run({
+  consumer.run({
     eachMessage: handleMessage,
   });
 }

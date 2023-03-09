@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import deserializer from '../kafka/deserializer'
 const sql = require("mssql");
-const conf = require('../config/config.ts')
+const conf = require('../config/config')
 
 var config = {
   user: conf("DB_USER"),
@@ -20,8 +20,6 @@ var config = {
     enableArithAbort: true,
   },
 };
-
-
 
 var listWorkflowFunctions = function (req: Request, res: Response) {
   const processInstanceid = req.params["process_instanceid"];

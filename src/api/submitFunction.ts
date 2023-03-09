@@ -1,7 +1,7 @@
 const { Kafka, CompressionTypes, CompressionCodecs } = require("kafkajs");
 const SnappyCodec = require("kafkajs-snappy");
 CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec;
-const conf = require("../config/config.ts");
+const conf = require("../config/config");
 import { v4 as uuidv4 } from "uuid";
 const kafka = new Kafka({
   clientId: conf("KAFKA_CLIENT_ID"),

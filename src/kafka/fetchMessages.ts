@@ -1,8 +1,8 @@
 const { Kafka } = require('kafkajs')
 import { Request, Response } from "express";
 import { KafkaMessage } from "kafkajs"
-const conf = require('../config/config.ts')
-const deserializer = require('deserializer.ts')
+const conf = require('../config/config')
+const deserializer = require('deserializer')
 const sql = require("mssql");
 
 var config = {
