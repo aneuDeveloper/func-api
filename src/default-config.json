@@ -1,10 +1,11 @@
 {
     "KAFKA_CLIENT_ID": "FuncManagerClientId",
     "KAFKA_GROUP_ID": "FuncManagerGroupId",
-    "BOOTSTRAPSERVER": "affenarsch:19092",
+    "BOOTSTRAPSERVER": "localhost:19092",
     "DB_USER": "sa",
     "DB_PASSWORD": "LocalAdmin_123",
     "DB_SERVER": "localhost",
     "DB_DATABASE": "tempdb",
-    "WORKFLOWS": "RetryProcess"
+    "DB_FUNC_TABLE": "func_events",
+    "FUNC_TOPICS": "RetryProcess-WORKFLOW"
 }

@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 const sql = require("mssql");
+const env = require("../config/config");
 
 var config = {
-  user: "sa",
-  password: "LocalAdmin_123",
-  server: "localhost",
-  database: "tempdb",
+  user: env("DB_USER"),
+  password: env("DB_PASSWORD"),
+  server: env("DB_SERVER"),
+  database: env("DB_DATABASE"),
   port: 1433,
   pool: {
     max: 10,
@@ -18,26 +19,32 @@ var config = {
     enableArithAbort: true,
   },
 };
+var funcTableName = env("DB_FUNC_TABLE");
 
-var searchFunctions = function (req: Request, res: Response) {
-  console.debug("on search")
+var search = function (req: Request, res: Response) {
+  const { freetext } = req.body;
+
   sql.on("error", (err: Error) => {
     console.log("Error on.");
     console.log(err);
     res.send(err);
   });
 
-  sql
-    .connect(config)
+  console.debug(
+    "Connect to database=" + env("DB_DATABASE") + ", server=" +
+      env("DB_SERVER") + ", table=" + funcTableName,
+  );
+  sql.connect(config)
     .then((pool: any) => {
       return (
         pool
           .request()
-          // .input('input_parameter', sql.Int, value)
+          .input("freetext", sql.VarChar, "%" + freetext + "%")
           .query(
             `
             SELECT *
-            FROM func_events
+            FROM ${funcTableName}
+            WHERE kafka_message LIKE @freetext
             ORDER BY time_stamp, process_instanceid DESC OFFSET 0 ROWS FETCH NEXT 50 ROWS ONLY
             `,
           )
@@ -54,14 +61,13 @@ var searchFunctions = function (req: Request, res: Response) {
           {
             "id": dbRow["id"],
             "coming_from_id": dbRow["coming_from_id"],
-            "func" : dbRow["func"],
-            "func_type" : dbRow["func_type"],
+            "func": dbRow["func"],
+            "func_type": dbRow["func_type"],
             "process_instanceid": dbRow["process_instanceid"],
             "time_stamp": dbRow["time_stamp"],
             "process_name": dbRow["process_name"],
           },
         );
-        console.log(result.recordset[k]["id"]);
       }
       res.send(response);
     })
@@ -72,4 +78,4 @@ var searchFunctions = function (req: Request, res: Response) {
     });
 };
 
-export default searchFunctions;
+export default search;
