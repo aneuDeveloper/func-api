@@ -66,6 +66,7 @@ var search = function (req: Request, res: Response) {
             "process_instanceid": dbRow["process_instanceid"],
             "time_stamp": dbRow["time_stamp"],
             "process_name": dbRow["process_name"],
+            "kafka_message": dbRow["kafka_message"]
           },
         );
       }
