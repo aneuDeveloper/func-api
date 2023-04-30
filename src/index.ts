@@ -1,5 +1,6 @@
 import express, { Express, Request, Response } from "express";
 import search from "./api/search";
+import getFunction from "./api/getFunction";
 import listFunctions from "./api/listWorkflowFunctions";
 import startConsuming from "./kafka/kafkaConsumer";
 import submitFunction from "./api/submitFunction";
@@ -18,6 +19,7 @@ const server = app.listen(8081, function () {
   app.get("/ping", (req: Request, res: Response) => {
     res.send("pong");
   });
+  app.get("/function/:function_id", getFunction);
   app.post("/submitFunction", (req: Request, res: Response) => {
     const messageBody = req.body;
     console.log("got body=" + messageBody);
