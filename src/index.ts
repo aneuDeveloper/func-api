@@ -3,7 +3,7 @@ import search from "./api/search";
 import getFunction from "./api/getFunction";
 import listFunctions from "./api/listWorkflowFunctions";
 import startConsuming from "./kafka/kafkaConsumer";
-import submitFunction from "./api/submitFunction";
+import POSTFunction from "./api/POSTFunction";
 import bodyParser from "body-parser";
 const app: Express = express();
 const cors = require("cors");
@@ -19,12 +19,12 @@ const server = app.listen(8081, function () {
   app.get("/ping", (req: Request, res: Response) => {
     res.send("pong");
   });
-  app.get("/function/:function_id", getFunction);
-  app.post("/submitFunction", (req: Request, res: Response) => {
+  app.get("/functions/:function_id", getFunction);
+  app.post("/functions", (req: Request, res: Response) => {
     const messageBody = req.body;
     console.log("got body=" + messageBody);
 
-    submitFunction(
+    POSTFunction(
       <string> req.query.source_topic,
       messageBody,
       <string> req.query.comingFromId,
