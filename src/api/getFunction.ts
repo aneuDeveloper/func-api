@@ -63,6 +63,7 @@ var search = function (req: Request, res: Response) {
           "time_stamp": dbRow["time_stamp"],
           "process_name": dbRow["process_name"],
           "kafka_message": dbRow["kafka_message"],
+          "source_topic": dbRow["source_topic"],
         };
       }
       res.send({

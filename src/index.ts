@@ -20,19 +20,25 @@ const server = app.listen(8081, function () {
     res.send("pong");
   });
   app.get("/functions/:function_id", getFunction);
-  app.post("/functions", (req: Request, res: Response) => {
+  app.post("/functions", async (req: Request, res: Response) => {
     const messageBody = req.body;
     console.log("got body=" + messageBody);
 
-    POSTFunction(
-      <string> req.query.source_topic,
-      messageBody,
-      <string> req.query.comingFromId,
-      <string> req.query.processName,
-      <string> req.query.processInstanceID,
-      <string> req.query.func,
-      <string> req.query.func_type,
-    );
+    try {
+      await POSTFunction(
+        <string> req.query.source_topic,
+        messageBody,
+        <string> req.query.comingFromId,
+        <string> req.query.processName,
+        <string> req.query.processInstanceID,
+        <string> req.query.func,
+        <string> req.query.func_type,
+      );
+      res.status(200).send('{ "status": "OK" }');
+    } catch (error) {
+      console.log(error);
+      res.status(500).send('{ "status": "ERROR" }');
+    }
   });
 
   app.post("/consume-kafka-messages", (req: Request, res: Response) => {
