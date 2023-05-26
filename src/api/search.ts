@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { authentify } from "./login";
+
 const sql = require("mssql");
 const env = require("../config/config");
 
@@ -22,6 +24,9 @@ var config = {
 var funcTableName = env("DB_FUNC_TABLE");
 
 var search = function (req: Request, res: Response) {
+  if (!authentify(req, res)) {
+    return;
+  }
   const { freetext } = req.body;
 
   sql.on("error", (err: Error) => {
@@ -30,45 +35,39 @@ var search = function (req: Request, res: Response) {
     res.send(err);
   });
 
-  console.debug(
-    "Connect to database=" + env("DB_DATABASE") + ", server=" +
-      env("DB_SERVER") + ", table=" + funcTableName,
-  );
-  sql.connect(config)
+  console.debug("Connect to database=" + env("DB_DATABASE") + ", server=" + env("DB_SERVER") + ", table=" + funcTableName);
+  sql
+    .connect(config)
     .then((pool: any) => {
-      return (
-        pool
-          .request()
-          .input("freetext", sql.VarChar, "%" + freetext + "%")
-          .query(
-            `
+      return pool
+        .request()
+        .input("freetext", sql.VarChar, "%" + freetext + "%")
+        .query(
+          `
             SELECT *
             FROM ${funcTableName}
             WHERE kafka_message LIKE @freetext
             ORDER BY time_stamp, process_instanceid DESC OFFSET 0 ROWS FETCH NEXT 50 ROWS ONLY
-            `,
-          )
-      );
+            `
+        );
     })
     .then((result: any) => {
       let response: any = {
-        "result": new Array(),
+        result: new Array(),
       };
 
       for (const k in result.recordset) {
         const dbRow = result.recordset[k];
-        response.result.push(
-          {
-            "id": dbRow["id"],
-            "coming_from_id": dbRow["coming_from_id"],
-            "func": dbRow["func"],
-            "func_type": dbRow["func_type"],
-            "process_instanceid": dbRow["process_instanceid"],
-            "time_stamp": dbRow["time_stamp"],
-            "process_name": dbRow["process_name"],
-            "kafka_message": dbRow["kafka_message"]
-          },
-        );
+        response.result.push({
+          id: dbRow["id"],
+          coming_from_id: dbRow["coming_from_id"],
+          func: dbRow["func"],
+          func_type: dbRow["func_type"],
+          process_instanceid: dbRow["process_instanceid"],
+          time_stamp: dbRow["time_stamp"],
+          process_name: dbRow["process_name"],
+          kafka_message: dbRow["kafka_message"],
+        });
       }
       res.send(response);
     })

@@ -1,5 +1,6 @@
 import express, { Express, Request, Response } from "express";
 import search from "./api/search";
+import login from "./api/login";
 import getFunction from "./api/getFunction";
 import listFunctions from "./api/listWorkflowFunctions";
 import startConsuming from "./kafka/kafkaConsumer";
@@ -14,6 +15,7 @@ const server = app.listen(8081, function () {
   app.use(bodyParser.text());
   app.use(cors());
 
+  app.post("/login", bodyParser.json(), login);
   app.post("/functions/search", bodyParser.json(), search);
   app.get("/workflow/:process_instanceid/functions", listFunctions);
   app.get("/ping", (req: Request, res: Response) => {
@@ -26,13 +28,13 @@ const server = app.listen(8081, function () {
 
     try {
       await POSTFunction(
-        <string> req.query.source_topic,
+        <string>req.query.source_topic,
         messageBody,
-        <string> req.query.comingFromId,
-        <string> req.query.processName,
-        <string> req.query.processInstanceID,
-        <string> req.query.func,
-        <string> req.query.func_type,
+        <string>req.query.comingFromId,
+        <string>req.query.processName,
+        <string>req.query.processInstanceID,
+        <string>req.query.func,
+        <string>req.query.func_type
       );
       res.status(200).send('{ "status": "OK" }');
     } catch (error) {
