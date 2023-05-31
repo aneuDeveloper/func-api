@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { authentify } from "./login";
 const sql = require("mssql");
 const env = require("../config/config");
 
@@ -22,6 +23,10 @@ var config = {
 var funcTableName = env("DB_FUNC_TABLE");
 
 var search = function (req: Request, res: Response) {
+  if (!authentify(req, res)) {
+    return;
+  }
+
   const function_id = req.params["function_id"];
 
   sql.on("error", (err: Error) => {

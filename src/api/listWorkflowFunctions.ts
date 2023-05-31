@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import deserializer from '../kafka/deserializer'
+import { authentify } from "./login";
 const sql = require("mssql");
 const conf = require('../config/config')
 
@@ -22,6 +23,10 @@ var config = {
 };
 
 var listWorkflowFunctions = function (req: Request, res: Response) {
+  if (!authentify(req, res)) {
+    return;
+  }
+
   const processInstanceid = req.params["process_instanceid"];
   console.log(processInstanceid);
   sql.on("error", (err: Error) => {

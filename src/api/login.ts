@@ -4,12 +4,13 @@ const jwt = require("jsonwebtoken");
 
 export function authentify(req: Request, res: Response): boolean {
   try {
-    const authHeader = "" + req.headers["Authorization"];
+    const authHeader = "" + req.headers["authorization"];
     const stripedToken = authHeader.replace("Bearer ", "");
     var decoded = jwt.verify(stripedToken, "mysecret");
     return true;
   } catch (err) {
     // err
+    res.status(401).send('{ "status": "ERROR" }');
     return false;
   }
 }
