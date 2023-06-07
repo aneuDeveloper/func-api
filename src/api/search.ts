@@ -27,8 +27,7 @@ var search = function (req: Request, res: Response) {
   if (!authentify(req, res)) {
     return;
   }
-  const { freetext } = req.body;
-
+  const { freetext, processInstanceId } = req.body;
   sql.on("error", (err: Error) => {
     console.log("Error on.");
     console.log(err);
@@ -39,17 +38,25 @@ var search = function (req: Request, res: Response) {
   sql
     .connect(config)
     .then((pool: any) => {
-      return pool
-        .request()
-        .input("freetext", sql.VarChar, "%" + freetext + "%")
-        .query(
-          `
-            SELECT *
-            FROM ${funcTableName}
-            WHERE kafka_message LIKE @freetext
-            ORDER BY time_stamp, process_instanceid DESC OFFSET 0 ROWS FETCH NEXT 50 ROWS ONLY
-            `
-        );
+      let queryParams = new Array();
+
+      const request = pool.request();
+      if (freetext != null && freetext !== "") {
+        request.input("freetext", sql.VarChar, "%" + freetext + "%");
+        queryParams.push("kafka_message LIKE @freetext");
+      }
+      if (processInstanceId != null && processInstanceId !== "") {
+        request.input("process_instanceid", sql.VarChar(50), processInstanceId);
+        queryParams.push("process_instanceid=@process_instanceid");
+      }
+      const queryString =
+        `SELECT *
+         FROM ${funcTableName}
+      ` +
+        (queryParams.length > 0 ? " WHERE " + queryParams.join(" AND ") : "") +
+        " ORDER BY time_stamp DESC OFFSET 0 ROWS FETCH NEXT 50 ROWS ONLY";
+      console.info(queryString);
+      return request.query(queryString);
     })
     .then((result: any) => {
       let response: any = {

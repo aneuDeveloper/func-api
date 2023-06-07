@@ -2,7 +2,6 @@ import express, { Express, Request, Response } from "express";
 import search from "./api/search";
 import login from "./api/login";
 import getFunction from "./api/getFunction";
-import listFunctions from "./api/listWorkflowFunctions";
 import startConsuming from "./kafka/kafkaConsumer";
 import createFunction from "./api/functions";
 import bodyParser from "body-parser";
@@ -19,7 +18,6 @@ const server = app.listen(8081, function () {
 
   app.post("/login", bodyParser.json(), login);
   app.post("/functions/search", bodyParser.json(), search);
-  app.get("/workflow/:process_instanceid/functions", listFunctions);
   app.get("/ping", (req: Request, res: Response) => {
     res.send("pong");
   });
