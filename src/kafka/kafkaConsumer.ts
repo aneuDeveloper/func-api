@@ -35,49 +35,27 @@ function handleMessage(messagePayload: EachMessagePayload) {
   sql
     .connect(config)
     .then((pool: any) => {
-      return (
-        pool
-          .request()
-          .input("id", sql.VarChar(50), functionEvent.get("id"))
-          .input("time_stamp", sql.VarChar(50), functionEvent.get("timestamp"))
-          .input(
-            "process_name",
-            sql.VarChar(50),
-            functionEvent.get("processName"),
-          )
-          .input(
-            "coming_from_id",
-            sql.VarChar(50),
-            functionEvent.get("comingFromId"),
-          )
-          .input(
-            "process_instanceid",
-            sql.VarChar(50),
-            functionEvent.get("processInstanceID"),
-          )
-          .input("func", sql.VarChar(50), functionEvent.get("func"))
-          .input("func_type", sql.VarChar(50), functionEvent.get("func_type"))
-          .input("source_topic", sql.VarChar(50), topic)
-          .input(
-            "next_retry_at",
-            sql.VarChar(50),
-            functionEvent.get("nextRetryAt"),
-          )
-          .input(
-            "retry_count",
-            sql.VarChar(50),
-            functionEvent.get("retryCount"),
-          )
-          .input("message_key", sql.VarChar(50), message.key)
-          .input("kafka_message", sql.VarChar(), messageStr)
-          .query(
-            `
+      return pool
+        .request()
+        .input("id", sql.VarChar(50), functionEvent.get("id"))
+        .input("time_stamp", sql.VarChar(50), functionEvent.get("timestamp"))
+        .input("process_name", sql.VarChar(50), functionEvent.get("processName"))
+        .input("coming_from_id", sql.VarChar(50), functionEvent.get("comingFromId"))
+        .input("process_instanceid", sql.VarChar(50), functionEvent.get("processInstanceID"))
+        .input("func", sql.VarChar(50), functionEvent.get("func"))
+        .input("func_type", sql.VarChar(50), functionEvent.get("func_type"))
+        .input("source_topic", sql.VarChar(50), topic)
+        .input("next_retry_at", sql.VarChar(50), functionEvent.get("nextRetryAt"))
+        .input("retry_count", sql.VarChar(50), functionEvent.get("retryCount"))
+        .input("message_key", sql.VarChar(50), message.key)
+        .input("kafka_message", sql.VarChar(), messageStr)
+        .query(
+          `
         INSERT INTO func_events
         (id, time_stamp, process_name, coming_from_id, process_instanceid, func, func_type, next_retry_at, source_topic, message_key, retry_count, kafka_message)
         VALUES(@id, @time_stamp, @process_name, @coming_from_id, @process_instanceid, @func, @func_type, @next_retry_at, @source_topic, @message_key, @retry_count, @kafka_message);
-        `,
-          )
-      );
+        `
+        );
     })
     // .then((result: any) => {
     // })
@@ -89,9 +67,7 @@ function handleMessage(messagePayload: EachMessagePayload) {
 
 async function startConsuming() {
   const bootstrapserver = conf("BOOTSTRAPSERVER");
-  console.log(
-    "Starting kafka consumer with BOOTSTRAPSERVER=" + bootstrapserver,
-  );
+  console.log("Starting kafka consumer with BOOTSTRAPSERVER=" + bootstrapserver);
 
   const kafka = new Kafka({
     clientId: conf("KAFKA_CLIENT_ID"),
@@ -101,12 +77,12 @@ async function startConsuming() {
   await consumer.connect();
 
   const topics = conf("FUNC_TOPICS");
-  await consumer.subscribe(
-    {
-      topics: [topics],
-      fromBeginning: true,
-    },
-  );
+  const connectionTimeout = parseInt(conf("CONNECTION_TIMEOUT"));
+  await consumer.subscribe({
+    topics: [topics],
+    fromBeginning: true,
+    connectionTimeout: connectionTimeout,
+  });
 
   sql.on("error", (err: Error) => {
     console.log("Error on.");
