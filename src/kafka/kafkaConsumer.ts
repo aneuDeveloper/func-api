@@ -59,11 +59,6 @@ function handleMessage(messagePayload: EachMessagePayload) {
           .input("func_type", sql.VarChar(50), functionEvent.get("func_type"))
           .input("source_topic", sql.VarChar(50), topic)
           .input(
-            "correlation_state",
-            sql.VarChar(50),
-            functionEvent.get("correlationState"),
-          )
-          .input(
             "next_retry_at",
             sql.VarChar(50),
             functionEvent.get("nextRetryAt"),
@@ -78,8 +73,8 @@ function handleMessage(messagePayload: EachMessagePayload) {
           .query(
             `
         INSERT INTO func_events
-        (id, time_stamp, process_name, coming_from_id, process_instanceid, func, func_type, next_retry_at, source_topic, message_key, correlation_state, retry_count, kafka_message)
-        VALUES(@id, @time_stamp, @process_name, @coming_from_id, @process_instanceid, @func, @func_type, @next_retry_at, @source_topic, @message_key, @correlation_state, @retry_count, @kafka_message);
+        (id, time_stamp, process_name, coming_from_id, process_instanceid, func, func_type, next_retry_at, source_topic, message_key, retry_count, kafka_message)
+        VALUES(@id, @time_stamp, @process_name, @coming_from_id, @process_instanceid, @func, @func_type, @next_retry_at, @source_topic, @message_key, @retry_count, @kafka_message);
         `,
           )
       );

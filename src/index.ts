@@ -24,10 +24,11 @@ const server = app.listen(8081, function () {
   app.get("/functions/:function_id", getFunction);
   app.post("/functions", createFunction);
 
-  app.post("/consume-kafka-messages", (req: Request, res: Response) => {
-    if (!authentify(req, res)) {
-      return;
-    }
+  app.get("/consume-kafka-messages", (req: Request, res: Response) => {
+    // if (!authentify(req, res)) {
+    //   return;
+    // }
+    console.log("Try to consume messages...");
 
     startConsuming();
     res.send("Consuming...");
