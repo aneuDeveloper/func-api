@@ -25,6 +25,8 @@ var config = {
   },
 };
 
+const tableName = conf("DB_FUNC_TABLE");
+
 function handleMessage(messagePayload: EachMessagePayload) {
   const { topic, message } = messagePayload;
   if (message == null || message.value == null) {
@@ -47,13 +49,13 @@ function handleMessage(messagePayload: EachMessagePayload) {
         .input("source_topic", sql.VarChar(50), topic)
         .input("next_retry_at", sql.VarChar(50), functionEvent.get("nextRetryAt"))
         .input("retry_count", sql.VarChar(50), functionEvent.get("retryCount"))
-        .input("message_key", sql.VarChar(50), message.key)
         .input("kafka_message", sql.VarChar(), messageStr)
         .query(
           `
-        INSERT INTO func_events
-        (id, time_stamp, process_name, coming_from_id, process_instanceid, func, func_type, next_retry_at, source_topic, message_key, retry_count, kafka_message)
-        VALUES(@id, @time_stamp, @process_name, @coming_from_id, @process_instanceid, @func, @func_type, @next_retry_at, @source_topic, @message_key, @retry_count, @kafka_message);
+        INSERT INTO ` +
+            tableName +
+            ` (id, time_stamp, process_name, coming_from_id, process_instanceid, func, func_type, next_retry_at, source_topic, retry_count, kafka_message)
+        VALUES(@id, @time_stamp, @process_name, @coming_from_id, @process_instanceid, @func, @func_type, @next_retry_at, @source_topic, @retry_count, @kafka_message);
         `
         );
     })
@@ -69,19 +71,20 @@ async function startConsuming() {
   const bootstrapserver = conf("BOOTSTRAPSERVER");
   console.log("Starting kafka consumer with BOOTSTRAPSERVER=" + bootstrapserver);
 
+  const connectionTimeout = parseInt(conf("CONNECTION_TIMEOUT"));
+  console.log("CONNECTION_TIMEOUT=" + connectionTimeout);
   const kafka = new Kafka({
     clientId: conf("KAFKA_CLIENT_ID"),
     brokers: [bootstrapserver],
+    connectionTimeout: connectionTimeout,
   });
   const consumer = kafka.consumer({ groupId: conf("KAFKA_GROUP_ID") });
   await consumer.connect();
 
   const topics = conf("FUNC_TOPICS");
-  const connectionTimeout = parseInt(conf("CONNECTION_TIMEOUT"));
   await consumer.subscribe({
     topics: [topics],
     fromBeginning: true,
-    connectionTimeout: connectionTimeout,
   });
 
   sql.on("error", (err: Error) => {

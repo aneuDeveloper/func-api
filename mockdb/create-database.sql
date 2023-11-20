@@ -8,7 +8,6 @@ CREATE TABLE func_events (
 	func_type varchar(11) COLLATE Latin1_General_CI_AI NULL,
 	next_retry_at bigint NULL,
 	source_topic varchar(255) COLLATE Latin1_General_CI_AI NULL,
-	message_key varchar(45) COLLATE Latin1_General_CI_AI NULL,
 	retry_count int NULL,
 	kafka_message varchar(MAX) COLLATE Latin1_General_CI_AI NULL
 );
