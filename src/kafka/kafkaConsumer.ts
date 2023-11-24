@@ -26,43 +26,60 @@ var config = {
 
 const tableName = conf("DB_FUNC_TABLE");
 
-function handleMessage(topic: string, message: string) {
-  if (message == null) {
+function handleMessage(topic: string, messages) {
+  if (messages == null) {
     return;
   }
-  const messageStr = message!.toString();
-  const functionEvent = deserializer(messageStr);
-  sql
-    .connect(config)
-    .then((pool: any) => {
-      return pool
-        .request()
-        .input("id", sql.VarChar(50), functionEvent.get("id"))
-        .input("time_stamp", sql.VarChar(50), functionEvent.get("timestamp"))
-        .input("process_name", sql.VarChar(50), functionEvent.get("processName"))
-        .input("coming_from_id", sql.VarChar(50), functionEvent.get("comingFromId"))
-        .input("process_instanceid", sql.VarChar(50), functionEvent.get("processInstanceID"))
-        .input("func", sql.VarChar(50), functionEvent.get("func"))
-        .input("func_type", sql.VarChar(50), functionEvent.get("func_type"))
-        .input("source_topic", sql.VarChar(50), topic)
-        .input("next_retry_at", sql.VarChar(50), functionEvent.get("nextRetryAt"))
-        .input("retry_count", sql.VarChar(50), functionEvent.get("retryCount"))
-        .input("kafka_message", sql.VarChar(), messageStr)
-        .query(
-          `
-        INSERT INTO ` +
-            tableName +
-            ` (id, time_stamp, process_name, coming_from_id, process_instanceid, func, func_type, next_retry_at, source_topic, retry_count, kafka_message)
-        VALUES(@id, @time_stamp, @process_name, @coming_from_id, @process_instanceid, @func, @func_type, @next_retry_at, @source_topic, @retry_count, @kafka_message);
-        `
-        );
-    })
-    // .then((result: any) => {
-    // })
-    .catch((err: Error) => {
+
+  const table = new sql.Table(tableName);
+  table.create = false;
+  table.columns.add("id", sql.VarChar(255), { nullable: true });
+  table.columns.add("time_stamp", sql.VarChar(255), { nullable: true });
+  table.columns.add("process_name", sql.VarChar(255), { nullable: true });
+  table.columns.add("coming_from_id", sql.VarChar(255), { nullable: true });
+  table.columns.add("process_instanceid", sql.VarChar(255), { nullable: true });
+  table.columns.add("func", sql.VarChar(255), { nullable: true });
+  table.columns.add("func_type", sql.VarChar(11), { nullable: true });
+  table.columns.add("next_retry_at", sql.BigInt, { nullable: true });
+  table.columns.add("source_topic", sql.VarChar(255), { nullable: true });
+  table.columns.add("retry_count", sql.Int, { nullable: true });
+  table.columns.add("kafka_message", sql.VarChar(sql.MAX), { nullable: true });
+
+  for (let message of messages) {
+    const messageStr = message!.value!.toString();
+    const functionEvent = deserializer(messageStr);
+    table.rows.add(
+      functionEvent.get("id"),
+      functionEvent.get("timestamp"),
+      functionEvent.get("processName"),
+      functionEvent.get("comingFromId"),
+      functionEvent.get("processInstanceID"),
+      functionEvent.get("func"),
+      functionEvent.get("func_type"),
+      getNumber(functionEvent, "nextRetryAt"),
+      topic,
+      getNumber(functionEvent, "retryCount"),
+      functionEvent.get("data")
+    );
+    console.log("Add row kafka message: "+functionEvent.get("data"));
+  }
+
+  const request = new sql.Request();
+  console.log("exe bulk");
+  request.bulk(table, (err, result) => {
+    if (err != null) {
       console.log(err);
-      console.log("Could not store: " + functionEvent);
-    });
+    }
+    console.log(result);
+  });
+}
+
+function getNumber(functionEvent, key: string) {
+  const valueAsString = functionEvent.get(key);
+  if (valueAsString != null) {
+    return parseInt(valueAsString);
+  }
+  return null;
 }
 
 async function startConsuming() {
@@ -91,9 +108,15 @@ async function startConsuming() {
     console.log(err);
   });
 
+  try {
+    await sql.connect(config);
+  } catch (err) {
+    console.log(err);
+  }
+
   consumer.run({
-    eachMessage: async ({ topic, partition, message }) => {
-      handleMessage(topic, message.value.toString());
+    eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
+      handleMessage(batch.topic, batch.messages);
     },
   });
 }
