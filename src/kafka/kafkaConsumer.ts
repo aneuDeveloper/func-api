@@ -61,7 +61,6 @@ function handleMessage(topic: string, messages) {
       getNumber(functionEvent, "retryCount"),
       functionEvent.get("data")
     );
-    console.log("Add row kafka message: "+functionEvent.get("data"));
   }
 
   const request = new sql.Request();
@@ -70,7 +69,6 @@ function handleMessage(topic: string, messages) {
     if (err != null) {
       console.log(err);
     }
-    console.log(result);
   });
 }
 
