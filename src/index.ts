@@ -9,6 +9,8 @@ import { authentify } from "./api/login";
 
 const app: Express = express();
 const cors = require("cors");
+const conf = require("./config/config");
+const consumeAfterStart = conf("CONSUME_AFTER_START");
 
 const server = app.listen(8081, function () {
   console.log("Start func api");
@@ -33,4 +35,8 @@ const server = app.listen(8081, function () {
     startConsuming();
     res.send("Consuming...");
   });
+
+  if ("true" === consumeAfterStart.toLowerCase()) {
+    startConsuming();
+  }
 });

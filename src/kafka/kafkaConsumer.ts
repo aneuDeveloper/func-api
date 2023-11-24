@@ -1,4 +1,3 @@
-import { EachMessagePayload } from "kafkajs";
 const { Kafka, CompressionTypes, CompressionCodecs } = require("kafkajs");
 const SnappyCodec = require("kafkajs-snappy");
 CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec;
@@ -27,12 +26,11 @@ var config = {
 
 const tableName = conf("DB_FUNC_TABLE");
 
-function handleMessage(messagePayload: EachMessagePayload) {
-  const { topic, message } = messagePayload;
-  if (message == null || message.value == null) {
+function handleMessage(topic: string, message: string) {
+  if (message == null) {
     return;
   }
-  const messageStr = message.value!.toString();
+  const messageStr = message!.toString();
   const functionEvent = deserializer(messageStr);
   sql
     .connect(config)
@@ -77,6 +75,7 @@ async function startConsuming() {
     clientId: conf("KAFKA_CLIENT_ID"),
     brokers: [bootstrapserver],
     connectionTimeout: connectionTimeout,
+    maxBytes: parseInt(conf("MAX_BYTES")),
   });
   const consumer = kafka.consumer({ groupId: conf("KAFKA_GROUP_ID") });
   await consumer.connect();
@@ -93,7 +92,9 @@ async function startConsuming() {
   });
 
   consumer.run({
-    eachMessage: handleMessage,
+    eachMessage: async ({ topic, partition, message }) => {
+      handleMessage(topic, message.value.toString());
+    },
   });
 }
 

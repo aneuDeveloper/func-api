@@ -11,6 +11,7 @@ const kafka = new Kafka({
   brokers: [conf("BOOTSTRAPSERVER")],
 });
 const producer = kafka.producer();
+// createPartitioner: Partitioners.LegacyPartitioner
 
 export default async function (req: Request, res: Response) {
   if (!authentify(req, res)) {
