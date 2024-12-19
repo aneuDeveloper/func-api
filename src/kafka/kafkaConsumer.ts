@@ -64,7 +64,6 @@ function handleMessage(topic: string, messages) {
   }
 
   const request = new sql.Request();
-  console.log("exe bulk");
   request.bulk(table, (err, result) => {
     if (err != null) {
       console.log(err);
@@ -96,8 +95,11 @@ async function startConsuming() {
   await consumer.connect();
 
   const topics = conf("FUNC_TOPICS");
+  var topicsAsArr = topics.split(",").map(function (item) {
+    return item.trim();
+  });
   await consumer.subscribe({
-    topics: [topics],
+    topics: topicsAsArr,
     fromBeginning: true,
   });
 
