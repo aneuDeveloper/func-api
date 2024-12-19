@@ -95,6 +95,7 @@ async function startConsuming() {
   await consumer.connect();
 
   const topics = conf("FUNC_TOPICS");
+  console.log("consume following topics=" + topics);
   var topicsAsArr = topics.split(",").map(function (item) {
     return item.trim();
   });

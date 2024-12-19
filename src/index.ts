@@ -20,8 +20,8 @@ const server = app.listen(8081, function () {
 
   app.post("/login", bodyParser.json(), login);
   app.post("/functions/search", bodyParser.json(), search);
-  app.get("/ping", (req: Request, res: Response) => {
-    res.send("pong");
+  app.get("/health", (req: Request, res: Response) => {
+    res.send("OK");
   });
   app.get("/functions/:function_id", getFunction);
   app.post("/functions", createFunction);
@@ -30,7 +30,7 @@ const server = app.listen(8081, function () {
     // if (!authentify(req, res)) {
     //   return;
     // }
-    console.log("Try to consume messages...");
+    console.log("Start consuming messages...");
 
     startConsuming();
     res.send("Consuming...");
