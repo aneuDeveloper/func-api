@@ -12,4 +12,4 @@ services:
       DB_PASSWORD: LocalAdmin_123
       DB_SERVER: localhost
       DB_DATABASE: tempdb
-      WORKFLOWS: RetryProcess
+      FUNC_TOPICS: Demo-WORKFLOW

@@ -3,7 +3,6 @@ const { Kafka, CompressionTypes, CompressionCodecs } = require("kafkajs")
 const SnappyCodec = require("kafkajs-snappy")
 CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec
 const conf = require("../config/config")
-const sql = require("mssql")
 
 const { Client } = require("@opensearch-project/opensearch")
 var client = new Client({
@@ -26,21 +25,24 @@ async function handleMessageAsOpensearch(messagePayload: EachMessagePayload) {
 
   var step: Record<string, unknown> = {}
   var customHeader: Record<string, unknown> = {}
-  step["message"] = messageStr;
-  step["custom_header"] = customHeader;
-  step["from_topic"] = topic;
+  step["message"] = messageStr
+  step["custom_header"] = customHeader
+  step["from_topic"] = topic
 
   const headers = message.headers
-  let processInstanceID = null
-  let processName = null
+  var processInstanceID = null
+  var processName = null
   if (headers) {
     for (const [headerKey, headerValue] of Object.entries(headers)) {
-      if (headerKey == "processInstanceID") {
-        processInstanceID = headerValue
-      } else if (headerKey == "processName") {
-        processName = headerValue
+      if(headerValue == null){
+        continue;
+      }
+      if (headerKey == "process_instance_id") {
+        processInstanceID = headerValue.toString("utf8")
+      } else if (headerKey == "process_name") {
+        processName = headerValue.toString("utf8")
       } else {
-        let key = null
+        var key = null
         if (headerKey == "id") {
           key = "id"
         } else if (headerKey == "v") {
@@ -88,7 +90,7 @@ async function handleMessageAsOpensearch(messagePayload: EachMessagePayload) {
     })
     console.log("Inserted")
   } catch (exception) {
-    // execute only if the entry already exists
+    // TODO: execute only if the entry already exists
     try {
       const result = await client.update({
         index: "processes",
@@ -113,6 +115,8 @@ async function startConsuming() {
   const bootstrapserver = conf("BOOTSTRAPSERVER")
   console.log("Starting kafka consumer with BOOTSTRAPSERVER=" + bootstrapserver)
 
+  const connectionTimeout = parseInt(conf("CONNECTION_TIMEOUT"))
+  console.log("CONNECTION_TIMEOUT=" + connectionTimeout)
   const kafka = new Kafka({
     clientId: conf("KAFKA_CLIENT_ID"),
     brokers: [bootstrapserver],
@@ -124,11 +128,6 @@ async function startConsuming() {
   await consumer.subscribe({
     topics: [topics],
     fromBeginning: true,
-  })
-
-  sql.on("error", (err: Error) => {
-    console.log("Error on.")
-    console.log(err)
   })
 
   consumer.run({
