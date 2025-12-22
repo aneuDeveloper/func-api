@@ -1,4 +1,4 @@
-FROM node:18-alpine as build
+FROM node:25.2-slim as build
 WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 COPY package.json ./
@@ -10,7 +10,7 @@ RUN npm install
 RUN npm run build
 
 # production environment
-FROM node:18-alpine
+FROM node:25.2-slim
 ENV NODE_ENV=production
 WORKDIR /app
 

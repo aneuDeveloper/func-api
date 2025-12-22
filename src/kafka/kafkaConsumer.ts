@@ -1,126 +1,139 @@
-import { EachMessagePayload } from "kafkajs";
-const { Kafka, CompressionTypes, CompressionCodecs } = require("kafkajs");
-const SnappyCodec = require("kafkajs-snappy");
-CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec;
-const conf = require("../config/config");
-import deserializer from "./deserializer";
+import { EachMessagePayload } from "kafkajs"
+const { Kafka, CompressionTypes, CompressionCodecs } = require("kafkajs")
+const SnappyCodec = require("kafkajs-snappy")
+CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec
+const conf = require("../config/config")
+const sql = require("mssql")
 
-const sql = require("mssql");
-
-var config = {
-  user: conf("DB_USER"),
-  password: conf("DB_PASSWORD"),
-  server: conf("DB_SERVER"),
-  database: conf("DB_DATABASE"),
-  port: 1433,
-  pool: {
-    max: 10,
-    min: 1,
-    idleTimeoutMillis: 10000,
-    log: true,
+const { Client } = require("@opensearch-project/opensearch")
+var client = new Client({
+  node: "https://admin:adfksjKJ3423.adf@localhost:9200",
+  ssl: {
+    rejectUnauthorized: false,
+    // cert: fs.readFileSync(client_cert_path),
+    // key: fs.readFileSync(client_key_path)
   },
-  options: {
-    encrypt: false,
-    enableArithAbort: true,
-  },
-};
+})
 
-function handleMessage(messagePayload: EachMessagePayload) {
-  const { topic, message } = messagePayload;
+const decoder = new TextDecoder("utf-8")
+
+async function handleMessageAsOpensearch(messagePayload: EachMessagePayload) {
+  const { topic, message } = messagePayload
   if (message == null || message.value == null) {
-    return;
+    return
   }
-  const messageStr = message.value!.toString();
-  const functionEvent = deserializer(messageStr);
-  sql
-    .connect(config)
-    .then((pool: any) => {
-      return (
-        pool
-          .request()
-          .input("id", sql.VarChar(50), functionEvent.get("id"))
-          .input("time_stamp", sql.VarChar(50), functionEvent.get("timestamp"))
-          .input(
-            "process_name",
-            sql.VarChar(50),
-            functionEvent.get("processName"),
-          )
-          .input(
-            "coming_from_id",
-            sql.VarChar(50),
-            functionEvent.get("comingFromId"),
-          )
-          .input(
-            "process_instanceid",
-            sql.VarChar(50),
-            functionEvent.get("processInstanceID"),
-          )
-          .input("func", sql.VarChar(50), functionEvent.get("func"))
-          .input("func_type", sql.VarChar(50), functionEvent.get("func_type"))
-          .input("source_topic", sql.VarChar(50), topic)
-          .input(
-            "correlation_state",
-            sql.VarChar(50),
-            functionEvent.get("correlationState"),
-          )
-          .input(
-            "next_retry_at",
-            sql.VarChar(50),
-            functionEvent.get("nextRetryAt"),
-          )
-          .input(
-            "retry_count",
-            sql.VarChar(50),
-            functionEvent.get("retryCount"),
-          )
-          .input("message_key", sql.VarChar(50), message.key)
-          .input("kafka_message", sql.VarChar(), messageStr)
-          .query(
-            `
-        INSERT INTO func_events
-        (id, time_stamp, process_name, coming_from_id, process_instanceid, func, func_type, next_retry_at, source_topic, message_key, correlation_state, retry_count, kafka_message)
-        VALUES(@id, @time_stamp, @process_name, @coming_from_id, @process_instanceid, @func, @func_type, @next_retry_at, @source_topic, @message_key, @correlation_state, @retry_count, @kafka_message);
-        `,
-          )
-      );
+  const messageStr = message.value!.toString()
+
+  var step: Record<string, unknown> = {}
+  var customHeader: Record<string, unknown> = {}
+  step["message"] = messageStr;
+  step["custom_header"] = customHeader;
+  step["from_topic"] = topic;
+
+  const headers = message.headers
+  let processInstanceID = null
+  let processName = null
+  if (headers) {
+    for (const [headerKey, headerValue] of Object.entries(headers)) {
+      if (headerKey == "processInstanceID") {
+        processInstanceID = headerValue
+      } else if (headerKey == "processName") {
+        processName = headerValue
+      } else {
+        let key = null
+        if (headerKey == "id") {
+          key = "id"
+        } else if (headerKey == "v") {
+          key = "v"
+        } else if (headerKey == "destination_topic") {
+          key = "destination_topic"
+        } else if (headerKey == "timestamp") {
+          key = "timestamp"
+        } else if (headerKey == "coming_from_id") {
+          key = "coming_from_id"
+        } else if (headerKey == "function") {
+          key = "function"
+        } else if (headerKey == "retry_count") {
+          key = "retry_count"
+        } else if (headerKey == "execute_at") {
+          key = "execute_at"
+        } else if (headerKey == "type") {
+          key = "type"
+        }
+
+        if (headerValue != null) {
+          if (key != null) {
+            step[key] = headerValue.toString("utf8")
+          } else {
+            customHeader[headerKey] = headerValue.toString("utf8")
+          }
+        }
+      }
+    }
+  }
+
+  var process = {
+    process_instance_id: processInstanceID,
+    process_name: processName,
+    steps: [step],
+  }
+
+  try {
+    var response = await client.index({
+      id: process.process_instance_id,
+      index: "processes",
+      body: process,
+      refresh: true,
+      op_type: "create",
     })
-    // .then((result: any) => {
-    // })
-    .catch((err: Error) => {
-      console.log(err);
-      console.log("Could not store: " + functionEvent);
-    });
+    console.log("Inserted")
+  } catch (exception) {
+    // execute only if the entry already exists
+    try {
+      const result = await client.update({
+        index: "processes",
+        id: process.process_instance_id,
+        body: {
+          script: {
+            source: "ctx._source.steps.add(params.newStep)",
+            params: {
+              newStep: step,
+            },
+          },
+        },
+      })
+      console.log("Updated")
+    } catch (exception) {
+      console.error(exception)
+    }
+  }
 }
 
 async function startConsuming() {
-  const bootstrapserver = conf("BOOTSTRAPSERVER");
-  console.log(
-    "Starting kafka consumer with BOOTSTRAPSERVER=" + bootstrapserver,
-  );
+  const bootstrapserver = conf("BOOTSTRAPSERVER")
+  console.log("Starting kafka consumer with BOOTSTRAPSERVER=" + bootstrapserver)
 
   const kafka = new Kafka({
     clientId: conf("KAFKA_CLIENT_ID"),
     brokers: [bootstrapserver],
-  });
-  const consumer = kafka.consumer({ groupId: conf("KAFKA_GROUP_ID") });
-  await consumer.connect();
+  })
+  const consumer = kafka.consumer({ groupId: conf("KAFKA_GROUP_ID") })
+  await consumer.connect()
 
-  const topics = conf("FUNC_TOPICS");
-  await consumer.subscribe(
-    {
-      topics: [topics],
-      fromBeginning: true,
-    },
-  );
+  const topics = conf("FUNC_TOPICS")
+  await consumer.subscribe({
+    topics: [topics],
+    fromBeginning: true,
+  })
 
   sql.on("error", (err: Error) => {
-    console.log("Error on.");
-    console.log(err);
-  });
+    console.log("Error on.")
+    console.log(err)
+  })
 
   consumer.run({
-    eachMessage: handleMessage,
-  });
+    eachMessage: handleMessageAsOpensearch,
+  })
 }
 
-export default startConsuming;
+export default startConsuming

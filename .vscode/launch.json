@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "func-api debug",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/func-api",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start", "--", "--inspect=9229"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

@@ -38,17 +38,13 @@ export default async function (
 
   message += "$e%," + body;
 
-  console.log("Sending kafka message: "+message);
+  console.log("Sending kafka message: " + message);
 
-  try {
-    await producer.connect();
-    await producer.send({
-      topic: source_topic,
-      messages: [
-        { key: null, value: message },
-      ],
-    });
-  } catch (error) {
-    console.log(error);
-  }
+  await producer.connect();
+  await producer.send({
+    topic: source_topic,
+    messages: [
+      { key: null, value: message },
+    ],
+  });
 }
