@@ -22,16 +22,18 @@ var search = async function (req: Request, res: Response) {
       },
     }
 
-    query.query.bool.must.push({
-      nested: {
-        path: "steps",
-        query: {
-          match_phrase: {
-            "steps.message": freetext,
+    if (freetext != null && freetext != "") {
+      query.query.bool.must.push({
+        nested: {
+          path: "steps",
+          query: {
+            match_phrase: {
+              "steps.message": freetext,
+            },
           },
         },
-      },
-    })
+      })
+    }
 
     if (process_name != null && process_name != "") {
       query.query.bool.must.push({

@@ -7,5 +7,6 @@
     "DB_SERVER": "localhost",
     "DB_DATABASE": "tempdb",
     "DB_FUNC_TABLE": "func_events",
-    "FUNC_TOPICS": "MyTest-WORKFLOW"
+    "FUNC_TOPICS": "MyTest-WORKFLOW",
+    "CONNECTION_TIMEOUT": 60000
 }
