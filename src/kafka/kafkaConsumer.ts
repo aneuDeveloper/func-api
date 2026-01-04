@@ -53,8 +53,8 @@ async function handleMessageAsOpensearch(messagePayload: EachMessagePayload) {
           key = "timestamp"
         } else if (headerKey == "coming_from_id") {
           key = "coming_from_id"
-        } else if (headerKey == "function") {
-          key = "function"
+        } else if (headerKey == "func") {
+          key = "func"
         } else if (headerKey == "retry_count") {
           key = "retry_count"
         } else if (headerKey == "execute_at") {

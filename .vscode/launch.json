@@ -5,7 +5,7 @@
       "name": "func-api debug",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/func-api",
+      "cwd": "${workspaceFolder}",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start", "--", "--inspect=9229"],
       "console": "integratedTerminal",
