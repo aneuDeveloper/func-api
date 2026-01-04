@@ -2,11 +2,9 @@
     "KAFKA_CLIENT_ID": "FuncManagerClientId",
     "KAFKA_GROUP_ID": "FuncManagerGroupId",
     "BOOTSTRAPSERVER": "localhost:9092",
-    "DB_USER": "sa",
-    "DB_PASSWORD": "LocalAdmin_123",
-    "DB_SERVER": "localhost",
-    "DB_DATABASE": "tempdb",
-    "DB_FUNC_TABLE": "func_events",
     "FUNC_TOPICS": "MyTest-WORKFLOW",
-    "CONNECTION_TIMEOUT": 60000
+    "CONSUME_ON_STARTUP": true,
+    "CONNECTION_TIMEOUT": 60000,
+    "JWT_SECRET": "test",
+    "AUTH_TYPE": "ENVIRONMENT"
 }

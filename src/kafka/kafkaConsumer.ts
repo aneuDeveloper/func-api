@@ -34,8 +34,8 @@ async function handleMessageAsOpensearch(messagePayload: EachMessagePayload) {
   var processName = null
   if (headers) {
     for (const [headerKey, headerValue] of Object.entries(headers)) {
-      if(headerValue == null){
-        continue;
+      if (headerValue == null) {
+        continue
       }
       if (headerKey == "process_instance_id") {
         processInstanceID = headerValue.toString("utf8")

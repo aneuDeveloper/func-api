@@ -8,7 +8,6 @@ var client = new Client({
     rejectUnauthorized: false,
   },
 })
-// var funcTableName = env("DB_FUNC_TABLE");
 
 var search = async function (req: Request, res: Response) {
   const { freetext, process_name } = req.body
@@ -42,7 +41,7 @@ var search = async function (req: Request, res: Response) {
         },
       })
     }
-
+    console.info(JSON.stringify(query));
     var searchResponse = await client.search({ index: "processes", body: query })
 
     let response: any = {
