@@ -25,8 +25,8 @@ export default async function (req: Request, res: Response) {
       v: "1",
       id: uuidv4(),
       timestamp: new Date().getTime(),
-      process_name: req.query.processName,
-      process_instance_id: req.query.processInstanceID,
+      process_name: req.query.process_name,
+      process_instance_id: req.query.process_instance_id,
       type: req.query.type,
     }
 
