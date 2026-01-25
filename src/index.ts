@@ -1,26 +1,32 @@
-import express, { Express, Request, Response } from "express"
-import search from "./api/search"
-import newFunction from "./api/newFunction"
-import startConsuming from "./kafka/kafkaConsumer"
-import bodyParser from "body-parser"
-const app: Express = express()
-const cors = require("cors")
-const conf = require("./config/config")
+import express, { Express } from "express";
+import consumeMessages from "./api/consumeMessages";
+import newFunction from "./api/newFunction";
+import search from "./api/search";
+import startConsuming from "./kafka/kafkaConsumer";
+import { logout, refreshToken, login } from "./api/auth";
+import { conf } from "./config/config";
+
+const app: Express = express();
+const cors = require("cors");
 
 const server = app.listen(8081, function () {
-  console.log("Start func api")
+  console.log("Start func api");
 
-  app.use(bodyParser.text())
-  app.use(cors())
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(cors());
 
-  app.post("/processes/search", bodyParser.json(), search)
-  app.post("/functions", newFunction)
-  app.post("/consume-kafka-messages", (req: Request, res: Response) => {
-    startConsuming()
-    res.send("Consuming...")
-  })
+  // authetification
+  app.post("/login", login);
+  app.post("/refresh", refreshToken);
+  app.post("/logout", logout);
 
-  if (conf("CONSUME_ON_STARTUP") === true) {
-    startConsuming()
+  // application
+  app.post("/processes/search", search);
+  app.post("/functions", newFunction);
+  app.post("/consume-kafka-messages", consumeMessages);
+
+  if (conf("CONSUME_ON_STARTUP") === "true") {
+    startConsuming();
   }
-})
+});

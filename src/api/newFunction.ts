@@ -1,25 +1,25 @@
-import { authentify } from "./login"
-import { Request, Response } from "express"
+import auth from "./auth";
+import { Request, Response } from "express";
+import { conf } from "../config/config";
 
-const { Kafka, CompressionTypes, CompressionCodecs } = require("kafkajs")
-const SnappyCodec = require("kafkajs-snappy")
-CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec
-const conf = require("../config/config")
-import { v4 as uuidv4 } from "uuid"
+const { Kafka, CompressionTypes, CompressionCodecs } = require("kafkajs");
+const SnappyCodec = require("kafkajs-snappy");
+CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec;
+import { v4 as uuidv4 } from "uuid";
 const kafka = new Kafka({
   clientId: conf("KAFKA_CLIENT_ID"),
   brokers: [conf("BOOTSTRAPSERVER")],
-})
-const producer = kafka.producer()
+});
+const producer = kafka.producer();
 
 export default async function (req: Request, res: Response) {
-  if (!authentify(req, res)) {
-    return
+  if (!auth(req, res)) {
+    return;
   }
 
   try {
     let toTopic = req.query.to_topic;
-    console.debug("on submit topic=", toTopic)
+    console.debug("on submit topic=", toTopic);
 
     let messageHeader = {
       v: "1",
@@ -27,25 +27,25 @@ export default async function (req: Request, res: Response) {
       timestamp: getCurrentIsoOffsetDateTime(),
       process_name: req.query.process_name,
       process_instance_id: req.query.process_instance_id,
-    }
+    };
 
     let functionType = req.query.type;
-    if(functionType != null){
-      Object.assign(messageHeader, { type: functionType })
-    }else{
-      Object.assign(messageHeader, { type: "WORKFLOW" })
+    if (functionType != null) {
+      Object.assign(messageHeader, { type: functionType });
+    } else {
+      Object.assign(messageHeader, { type: "WORKFLOW" });
     }
 
-    let comingFromId = req.query.coming_from_id
+    let comingFromId = req.query.coming_from_id;
     if (comingFromId != null) {
-      Object.assign(messageHeader, { coming_from_id: comingFromId })
+      Object.assign(messageHeader, { coming_from_id: comingFromId });
     }
-    let funcValue = req.query.func
+    let funcValue = req.query.func;
     if (funcValue != null) {
-      Object.assign(messageHeader, { func: funcValue })
+      Object.assign(messageHeader, { func: funcValue });
     }
 
-    await producer.connect()
+    await producer.connect();
     await producer.send({
       topic: toTopic,
       messages: [
@@ -55,12 +55,12 @@ export default async function (req: Request, res: Response) {
           headers: messageHeader,
         },
       ],
-    })
+    });
 
-    res.status(200).send('{ "status": "OK" }')
+    res.status(200).send('{ "status": "OK" }');
   } catch (error) {
-    console.log(error)
-    res.status(500).send('{ "status": "ERROR" }')
+    console.log(error);
+    res.status(500).send('{ "status": "ERROR" }');
   }
 }
 
