@@ -3,6 +3,7 @@ import { secretOrConf } from "../config/config";
 import { conf } from "../config/config";
 
 const openSearchConnection = secretOrConf("OPEN_SEARCH_CONNECTION_STRING");
+const indexName = secretOrConf("OPEN_SEARCH_INDEX");
 const { Kafka, CompressionTypes, CompressionCodecs } = require("kafkajs");
 const SnappyCodec = require("kafkajs-snappy");
 CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec;
@@ -86,7 +87,7 @@ async function handleMessageAsOpensearch(messagePayload: EachMessagePayload) {
   try {
     var response = await client.index({
       id: process.process_instance_id,
-      index: "processes",
+      index: indexName,
       body: process,
       refresh: true,
       op_type: "create",
@@ -96,7 +97,7 @@ async function handleMessageAsOpensearch(messagePayload: EachMessagePayload) {
     // TODO: execute only if the entry already exists
     try {
       const result = await client.update({
-        index: "processes",
+        index: indexName,
         id: process.process_instance_id,
         body: {
           script: {
@@ -128,9 +129,15 @@ async function startConsuming() {
   await consumer.connect();
 
   const topics = conf("FUNC_TOPICS");
+
+  let fromBeginning = false;
+  if (conf("FROM_BEGINNING") != null && conf("FROM_BEGINNING").toLowerCase() === "true") {
+    fromBeginning = true;
+  }
+
   await consumer.subscribe({
     topics: [topics],
-    fromBeginning: true,
+    fromBeginning: fromBeginning,
   });
 
   consumer.run({

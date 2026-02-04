@@ -26,7 +26,7 @@ const server = app.listen(8081, function () {
   app.post("/functions", newFunction);
   app.post("/consume-kafka-messages", consumeMessages);
 
-  if (conf("CONSUME_ON_STARTUP") === "true") {
+  if (conf("CONSUME_ON_STARTUP")?.toLowerCase() === "true") {
     startConsuming();
   }
 });

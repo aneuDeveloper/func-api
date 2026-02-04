@@ -17,3 +17,6 @@ If authentification is disabled all endpoins skip request validation. Any endpoi
 ### Using OIDC with Password grand_type
 AUTHENTIFICATION_ENABLED=true
 AUTH_TYPE=OIDC
+OPENID_WELL_KNOWN_URL="url"
+OPENID_REDIRECT_URI="for token endpoint"
+CLIENT_EXPOSED_OPENID_REDIRECT_URL="url to your auth

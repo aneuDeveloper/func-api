@@ -3,7 +3,8 @@
     "KAFKA_GROUP_ID": "FuncManagerGroupId",
     "BOOTSTRAPSERVER": "localhost:9092",
     "FUNC_TOPICS": "MyTest-WORKFLOW",
-    "CONSUME_ON_STARTUP": false,
+    "CONSUME_ON_STARTUP": "false",
+    "FROM_BEGINNING": "true",
     "CONNECTION_TIMEOUT": 60000,
     "JWT_SECRET": "test",
     "AUTH_TYPE": "OIDC",
@@ -11,5 +12,7 @@
     "OPEN_SEARCH_CONNECTION_STRING": "https://admin:adfksjKJ3423.adf@localhost:9200",
     "OPENID_CLIENT_ID": "XXX",
     "OPENID_CLIENT_SECRET": "XXX",
-    "OPENID_WELL_KNOWN_URL": "XXX"
+    "OPENID_WELL_KNOWN_URL": "XXX",
+    "OPENID_REDIRECT_URI": "XXX",
+    "CLIENT_EXPOSED_OPENID_REDIRECT_URL": "XXX",
 }
