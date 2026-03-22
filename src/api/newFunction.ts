@@ -21,13 +21,7 @@ export default async function (req: Request, res: Response) {
     let toTopic = req.query.to_topic;
     console.debug("on submit topic=", toTopic);
 
-    let messageHeader = {
-      v: "1",
-      id: uuidv4(),
-      timestamp: getCurrentIsoOffsetDateTime(),
-      process_name: req.query.process_name,
-      process_instance_id: req.query.process_instance_id,
-    };
+    let messageHeader = newMessageHeader(req.query.process_name as string, req.query.process_instance_id as string);
 
     let functionType = req.query.type;
     if (functionType != null) {
@@ -63,6 +57,18 @@ export default async function (req: Request, res: Response) {
     console.log(error);
     res.status(500).send('{ "status": "ERROR" }');
   }
+}
+
+export function newMessageHeader(process_name: String, process_instance_id: String) {
+  let messageHeader = {
+    v: "1",
+    id: uuidv4(),
+    timestamp: getCurrentIsoOffsetDateTime(),
+    process_name: process_name,
+    process_instance_id: process_instance_id,
+  };
+
+  return messageHeader;
 }
 
 function getCurrentIsoOffsetDateTime(): string {

@@ -1,6 +1,6 @@
-FROM node:25.2-slim as build
+FROM node:25.2-slim AS build
 WORKDIR /app
-ENV PATH /app/node_modules/.bin:$PATH
+ENV PATH=/app/node_modules/.bin:$PATH
 COPY package.json ./
 COPY package-lock.json ./
 RUN npm ci --silent
