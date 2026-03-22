@@ -45,6 +45,9 @@ async function configureOIDCEndpoints() {
 
 export default async function verifyAuth(req: Request, res: Response) {
   try {
+    if (!(authEnabled == "true" || authEnabled == "TRUE")) {
+      return null;
+    }
     const authorizationToken = ("" + req.headers["authorization"]).split(" ")[1];
     if (authorizationToken == null || !authorizationToken) {
       res.status(401).send({
