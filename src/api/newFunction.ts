@@ -13,7 +13,7 @@ const kafka = new Kafka({
 const producer = kafka.producer();
 
 export default async function (req: Request, res: Response) {
-  if (!auth(req, res)) {
+  if (auth(req, res) == null) {
     return;
   }
 

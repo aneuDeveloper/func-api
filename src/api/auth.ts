@@ -46,7 +46,7 @@ async function configureOIDCEndpoints() {
 export default async function verifyAuth(req: Request, res: Response) {
   try {
     if (!(authEnabled == "true" || authEnabled == "TRUE")) {
-      return null;
+      return {};
     }
     const authorizationToken = ("" + req.headers["authorization"]).split(" ")[1];
     if (authorizationToken == null || !authorizationToken) {
@@ -67,6 +67,10 @@ export default async function verifyAuth(req: Request, res: Response) {
     if (error.code === "ERR_JWT_EXPIRED") {
       res.status(401).send({
         message: "Your authentification is invalid.",
+      });
+    } else {
+      res.status(401).send({
+        message: "Your authentification could not be parsed.",
       });
     }
     return null;
