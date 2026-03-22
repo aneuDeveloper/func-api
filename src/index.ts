@@ -23,7 +23,7 @@ const server = app.listen(8081, function () {
 
   // application
   app.post("/processes/search", search);
-  app.post("/functions", newFunction);
+  app.post("/functions", express.text(), newFunction);
   app.post("/consume-kafka-messages", consumeMessages);
 
   if (conf("CONSUME_ON_STARTUP")?.toLowerCase() === "true") {

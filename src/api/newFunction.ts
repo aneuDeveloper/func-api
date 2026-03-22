@@ -46,12 +46,13 @@ export default async function (req: Request, res: Response) {
     }
 
     await producer.connect();
+    var messageBody = req.body;
     await producer.send({
       topic: toTopic,
       messages: [
         {
           key: null,
-          value: req.body,
+          value: messageBody,
           headers: messageHeader,
         },
       ],
